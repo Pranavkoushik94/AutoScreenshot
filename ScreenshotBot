@@ -1,0 +1,42 @@
+import cv2
+import numpy as np
+
+# Open the video file
+cap = cv2.VideoCapture("video.mp4")
+
+# Define the codec and create VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+out = cv2.VideoWriter("output.mp4", fourcc, 30.0, (640,480))
+
+# Read the first frame
+ret, frame = cap.read()
+
+# Convert the first frame to grayscale
+prev_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+while(cap.isOpened()):
+    # Read the next frame
+    ret, frame = cap.read()
+    if not ret:
+        break
+    
+    # Convert the current frame to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Calculate the absolute difference between the current and previous frame
+    diff = cv2.absdiff(gray, prev_gray)
+    
+    # Threshold the difference image to highlight the changes
+    thresh = cv2.threshold(diff, 25, 255, cv2.THRESH_BINARY)[1]
+    
+    # Check if the number of changes exceeds a certain threshold
+    if np.sum(thresh) > 5000:
+        # Save the screenshot to disk
+        cv2.imwrite("screenshot_{}.png".format(int(cap.get(cv2.CAP_PROP_POS_FRAMES))), frame)
+        
+    # Update the previous frame
+    prev_gray = gray
+    
+# Release the resources
+cap.release()
+cv2.destroyAllWindows()
